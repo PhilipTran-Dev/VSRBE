@@ -1,23 +1,22 @@
 package src.Entity;
 
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "trafficsign")
+@Document(collection = "trafficsign")
 @Data
 @Getter
 @Setter
 public class TrafficSign {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
+
     private String signName;
     private String signCode;
     private String description;
-    @Lob
     private String image;
-
 }

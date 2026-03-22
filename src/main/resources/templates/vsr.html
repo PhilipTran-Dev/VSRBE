@@ -10,8 +10,67 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .cam-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        #cam-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }
+        #cam-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        #cam-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            background: #00e5ff;
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #cam-btn:active { opacity: 0.8; }
+        #cam-log {
+            position: absolute;
+            bottom: 8px; left: 8px;
+            z-index: 10;
+            background: rgba(0,0,0,0.6);
+            color: #aaa;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            max-width: 80%;
+            max-height: 80px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        #cam-log .ok  { color: #00e5ff; }
+        #cam-log .det { color: #39ff14; }
+        #cam-log .err { color: #ff4444; }
+        .v-marker { transition: transform 0.3s ease-out; }
+        #recenter-btn { transition: all 0.2s ease; }
+        #recenter-btn:hover { background: #f0f0f0; transform: scale(1.1); }
+        #search-box-ui { pointer-events: none; }
+        #search-box-ui input, #search-box-ui .list-group { pointer-events: auto; }
+    </style>
 </head>
 
 <body class="bg-light">
@@ -20,26 +79,16 @@
     <nav class="navbar navbar-expand-lg navbar-pill container shadow-lg py-2 px-4">
         <div class="container-fluid">
             <a class="navbar-brand vsr-logo-nav me-5" href="/index">VSR</a>
-
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav gap-2 gap-lg-5">
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom" href="/index">TRANG CHỦ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom active" href="/vsr">VSR</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom" href="/contact">LIÊN HỆ</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link nav-link-custom" href="/index">TRANG CHỦ</a></li>
+                    <li class="nav-item"><a class="nav-link nav-link-custom active" href="/vsr">VSR</a></li>
+                    <li class="nav-item"><a class="nav-link nav-link-custom" href="/contact">LIÊN HỆ</a></li>
                 </ul>
             </div>
-
             <div class="d-none d-lg-block ms-5">
                 <a href="/login" class="user-btn-pill shadow-sm" title="Đăng nhập tài khoản">
                     <i class="fa-solid fa-user"></i>
@@ -63,34 +112,15 @@
 
         <main class="container-fluid p-4">
             <div class="row g-4 align-items-stretch">
-                <style>
-                    .v-marker {
-                        transition: transform 0.3s ease-out;
-                    }
-                    #recenter-btn {
-                        transition: all 0.2s ease;
-                    }
-                    #recenter-btn:hover {
-                        background: #f0f0f0;
-                        transform: scale(1.1);
-                    }
-                    #search-box-ui {
-                        pointer-events: none;
-                    }
-                    #search-box-ui input,
-                    #search-box-ui .list-group {
-                        pointer-events: auto;
-                    }
-                </style>
 
                 <!-- MAP COLUMN -->
                 <div class="col-lg-5">
                     <div class="vsr-dash-card h-100"
-                         style="background: #f8f9fa; border-radius: 25px; overflow: visible; position: relative; border: 1px solid #dee2e6;">
+                         style="background:#f8f9fa; border-radius:25px; overflow:visible; position:relative; border:1px solid #dee2e6;">
 
                         <div id="nav-instruction"
                              class="position-absolute top-0 start-50 translate-middle-x mt-3 shadow-lg"
-                             style="z-index: 1100; width: 92%; display: none;">
+                             style="z-index:1100; width:92%; display:none;">
                             <div class="bg-success text-white p-3 rounded-4 d-flex align-items-center">
                                 <i class="fa-solid fa-location-arrow fs-2 me-3"></i>
                                 <div>
@@ -100,76 +130,67 @@
                             </div>
                         </div>
 
-                        <div class="vsr-dash-content-box position-relative" style="height: 450px;">
+                        <div class="vsr-dash-content-box position-relative" style="height:450px;">
                             <button id="recenter-btn"
                                     class="btn btn-white shadow-lg rounded-circle position-absolute"
-                                    style="z-index: 1000; bottom: 100px; right: 20px; width: 50px; height: 50px; display: none; border: 1px solid #ccc; background: white;">
+                                    style="z-index:1000; bottom:100px; right:20px; width:50px; height:50px; display:none; border:1px solid #ccc; background:white;">
                                 <i class="fa-solid fa-location-crosshairs text-primary fs-4"></i>
                             </button>
 
                             <div id="search-box-ui" class="position-absolute top-0 start-50 translate-middle-x mt-3"
-                                 style="z-index: 1000; width: 90%;">
+                                 style="z-index:1000; width:90%;">
                                 <input type="text" id="dest-input"
                                        class="form-control border-0 rounded-pill px-4 shadow-sm"
                                        placeholder="Tìm điểm đến...">
                                 <div id="suggest-box" class="list-group mt-1 shadow-lg border-0"></div>
                             </div>
 
-                            <div id="leaflet-map" style="width: 100%; height: 100%;"></div>
+                            <div id="leaflet-map" style="width:100%; height:100%;"></div>
 
-                            <div id="trip-stats"
-                                 class="position-absolute shadow-lg"
-                                 style=" z-index:1100;  bottom:20px;  left:50%;  transform:translateX(-50%);  width:85%;  max-width:500px;  border-radius:25px;  display:none; background:white;">
-
+                            <div id="trip-stats" class="position-absolute shadow-lg"
+                                 style="z-index:1100; bottom:20px; left:50%; transform:translateX(-50%); width:85%; max-width:500px; border-radius:25px; display:none; background:white;">
                                 <div class="p-3 d-flex justify-content-between align-items-center">
-
-                                    <button class="btn btn-light rounded-circle shadow-sm"
-                                            onclick="location.reload()"
-                                            style="width:45px;height:45px;">
+                                    <button class="btn btn-light rounded-circle shadow-sm" onclick="location.reload()" style="width:45px;height:45px;">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
-
                                     <div class="text-center">
-                                        <div class="text-success fw-bold fs-4 mb-0" id="time-left">
-                                            -- phút
-                                        </div>
+                                        <div class="text-success fw-bold fs-4 mb-0" id="time-left">-- phút</div>
                                         <div class="text-muted small">
                                             <span id="dist-left">--</span> km •
                                             <span id="arrival-time">--:--</span>
                                         </div>
                                     </div>
-
-                                    <button id="start-nav"
-                                            class="btn btn-primary rounded-pill px-4 fw-bold">
-                                        BẮT ĐẦU
-                                    </button>
+                                    <button id="start-nav" class="btn btn-primary rounded-pill px-4 fw-bold">BẮT ĐẦU</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- CAMERA COLUMN -->
                 <div class="col-lg-7">
                     <div class="vsr-dash-card h-100">
                         <div class="vsr-dash-card-label p-3 d-flex justify-content-between">
                             <span><i class="fa-solid fa-camera me-2"></i>GIÁM SÁT AI</span>
-                            <span class="small text-info">30.0 FPS</span>
+                            <span class="small text-info" id="fps-label">-- FPS</span>
                         </div>
-                        <div class="vsr-dash-content-box position-relative" style="height: 450px;">
+
+                        <div class="vsr-dash-content-box position-relative" style="height:450px;">
                             <div class="vsr-dash-ai-target position-absolute"
                                  style="top:0; left:0; width:100%; height:100%;">
-                                <img src="http://localhost:5000/video_feed" style="width:100%; height:100%; object-fit:cover;" />
-<!--                                <img id="signImg" style="position:absolute; top:20px;right:20px;width:120px;background:white; padding:5px; border-radius:10px; display:none;" />-->
 
-                                <div id="signContainer"
-                                     style="position:absolute;
-            top:20px;
-            right:20px;
-            display:flex;
-            flex-direction:column;
-            gap:10px;">
+                                <div class="cam-wrapper">
+                                    <video id="cam-video" autoplay playsinline muted></video>
+                                    <canvas id="cam-canvas"></canvas>
+                                    <button id="cam-btn" onclick="startCamera()">
+                                        Turn On Camera
+                                    </button>
+                                    <div id="cam-log">⏳ Chờ bấm nút...</div>
                                 </div>
 
+                                <div id="signContainer"
+                                     style="position:absolute; top:20px; right:20px; display:flex; flex-direction:column; gap:10px; z-index:5;">
+                                </div>
 
                             </div>
                         </div>
@@ -179,104 +200,260 @@
             </div>
         </main>
     </div>
-</div><
+</div>
+
+<canvas id="captureCanvas" hidden></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-
-<!--<script>-->
-<!--    const signImg = document.getElementById("signImg");-->
-
-<!--    let hideTimeout = null;-->
-<!--    let lastImage = null;-->
-
-<!--    setInterval(() => {-->
-<!--        fetch("/api/current-sign")-->
-<!--            .then(res => res.text())-->
-<!--            .then(text => text ? JSON.parse(text) : null)-->
-<!--            .then(data => {-->
-<!--                if (!data || !data.image) return;-->
-
-<!--                if (data.image === lastImage) return;-->
-
-<!--                lastImage = data.image;-->
-
-<!--                signImg.src = data.image;-->
-<!--                signImg.style.display = "block";-->
-
-<!--                if (hideTimeout) clearTimeout(hideTimeout);-->
-
-<!--                hideTimeout = setTimeout(() => {-->
-<!--                    signImg.style.display = "none";-->
-<!--                    lastImage = null;-->
-<!--                }, 5000);-->
-<!--            })-->
-<!--            .catch(() => {});-->
-<!--    }, 1000);-->
-<!--</script>-->
-
 <script>
-    const container = document.getElementById("signContainer");
+    let audioCtx = null;
+    let audioUnlocked = false;
 
-    let showingSigns = new Set(); // chống trùng
+    function getAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return audioCtx;
+    }
 
-    setInterval(() => {
-        fetch("/api/current-sign")
-            .then(res => res.json())
-            .then(data => {
-                if (!data || !data.id) return;
-
-                // Nếu đang hiển thị rồi thì bỏ
-                if (showingSigns.has(data.id)) return;
-
-                showingSigns.add(data.id);
-
-                // Tạo image mới
-                const img = document.createElement("img");
-                img.src = data.image;
-                img.style.width = "120px";
-                img.style.background = "white";
-                img.style.padding = "5px";
-                img.style.borderRadius = "10px";
-
-                container.appendChild(img);
-
-                // Sau 5s xoá nó
-                setTimeout(() => {
-                    container.removeChild(img);
-                    showingSigns.delete(data.id);
-                }, 5000);
-            })
-            .catch(() => {});
-    }, 1000);
+    async function unlockAudio() {
+        if (audioUnlocked) return;
+        try {
+            const ctx = getAudioContext();
+            if (ctx.state === 'suspended') {
+                await ctx.resume();
+            }
+            const buf = ctx.createBuffer(1, 1, 22050);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+            src.start(0);
+            audioUnlocked = true;
+            console.log('[Audio] AudioContext unlocked, state:', ctx.state);
+        } catch(e) {
+            console.warn('[Audio] unlock error:', e);
+        }
+    }
 </script>
 
+<!-- ================================================================
+     CAMERA + DETECT
+     ================================================================ -->
+<script>
+    const camVideo      = document.getElementById('cam-video');
+    const camCanvas     = document.getElementById('cam-canvas');
+    const camCtx        = camCanvas.getContext('2d');
+    const captureCanvas = document.getElementById('captureCanvas');
+    const camLog        = document.getElementById('cam-log');
+    const camBtn        = document.getElementById('cam-btn');
+    const fpsLabel      = document.getElementById('fps-label');
 
+    const audioCache = {};
+    let fpsCount = 0;
+    setInterval(() => { fpsLabel.textContent = fpsCount + ' FPS'; fpsCount = 0; }, 1000);
+
+    function camlog(msg, cls = '') {
+        const line = document.createElement('div');
+        if (cls) line.className = cls;
+        line.textContent = '› ' + msg;
+        camLog.appendChild(line);
+        camLog.scrollTop = camLog.scrollHeight;
+        while (camLog.children.length > 30) camLog.removeChild(camLog.firstChild);
+    }
+
+    // ── PHÁT ÂM THANH ────────────────────────────────────────────
+    function playSound(soundFile) {
+        if (!audioCache[soundFile]) {
+            const a = new Audio('/api/sounds/' + soundFile);
+            a.preload = 'auto';
+            audioCache[soundFile] = a;
+        }
+        const audio = audioCache[soundFile];
+        audio.currentTime = 0;
+
+        const ctx = getAudioContext();
+        const doPlay = () => {
+            audio.play()
+                .then(() => camlog('Sound: ' + soundFile, 'ok'))
+                .catch(e => {
+                    camlog('Audio Error: ' + e.message, 'err');
+                    if ('speechSynthesis' in window) {
+                        const u = new SpeechSynthesisUtterance(soundFile.replace('.mp3', ''));
+                        u.lang = 'vi-VN';
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(u);
+                    }
+                });
+        };
+
+        if (ctx.state === 'suspended') {
+            ctx.resume().then(doPlay);
+        } else {
+            doPlay();
+        }
+    }
+
+    // ── VẼ BOUNDING BOX ──────────────────────────────────────────
+    function drawBoxes(detections, fw, fh) {
+        camCanvas.width  = fw;
+        camCanvas.height = fh;
+        camCtx.clearRect(0, 0, fw, fh);
+        detections.forEach(d => {
+            const {x1, y1, x2, y2} = d.box;
+            const pct  = Math.round(d.confidence * 100);
+            const text = d.label + ' ' + pct + '%';
+
+            camCtx.strokeStyle = '#00ff00';
+            camCtx.lineWidth   = 3;
+            camCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+            camCtx.font = 'bold 15px monospace';
+            const tw = camCtx.measureText(text).width;
+            camCtx.fillStyle = '#00ff00';
+            camCtx.fillRect(x1, y1 - 22, tw + 12, 22);
+            camCtx.fillStyle = '#000';
+            camCtx.fillText(text, x1 + 6, y1 - 6);
+        });
+    }
+
+    // ── GỬI FRAME LÊN SERVER ─────────────────────────────────────
+    function startSending() {
+        camlog('Camera: ' + camVideo.videoWidth + 'x' + camVideo.videoHeight + ' — Đang nhận diện...', 'ok');
+        let isSending = false;
+
+        setInterval(() => {
+            if (camVideo.videoWidth === 0 || isSending) return;
+
+            captureCanvas.width  = 640;
+            captureCanvas.height = 480;
+            captureCanvas.getContext('2d').drawImage(camVideo, 0, 0, 640, 480);
+
+            captureCanvas.toBlob(blob => {
+                if (!blob) return;
+                isSending = true;
+                const form = new FormData();
+                form.append('frame', blob, 'frame.jpg');
+
+                fetch('/api/detect', { method: 'POST', body: form })
+                    .then(r => r.json())
+                    .then(data => {
+                        fpsCount++;
+                        if (data.detections && data.detections.length > 0) {
+                            drawBoxes(data.detections, 640, 480);
+                            data.detections.forEach(d => {
+                                const pct = Math.round(d.confidence * 100);
+                                camlog('Signal: ' + d.label + ' (' + pct + '%) alert=' + d.shouldAlert, 'det');
+                                if (d.shouldAlert) playSound(d.soundFile);
+                            });
+                        } else {
+                            camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
+                        }
+                    })
+                    .catch(e => camlog('ERROR ' + e.message, 'err'))
+                    .finally(() => { isSending = false; });
+
+            }, 'image/jpeg', 0.95);
+        }, 600);
+    }
+
+    // ── BẮT ĐẦU CAMERA ───────────────────────────────────────────
+    async function startCamera() {
+        camBtn.style.display = 'none';
+
+        await unlockAudio();
+        camlog('Audio context is on ready', 'ok');
+
+        camlog('require permission from device');
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' } },
+                audio: false
+            });
+            camlog('Behind Camera is ok', 'ok');
+        } catch (e) {
+            camlog('Thử camera mặc định...');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                camlog('✅ Camera OK', 'ok');
+            } catch (e2) {
+                camlog('❌ ' + e2.message, 'err');
+                camBtn.style.display = 'block';
+                return;
+            }
+        }
+
+        camVideo.srcObject = stream;
+        try {
+            await camVideo.play();
+            camlog('Camera Running!', 'ok');
+        } catch (e) {
+            camlog('Camera Stop' + e.message, 'err');
+            return;
+        }
+
+        if (camVideo.readyState >= 1) {
+            startSending();
+        } else {
+            camVideo.addEventListener('loadedmetadata', () => startSending(), { once: true });
+        }
+    }
+</script>
+
+<!-- ================================================================
+     BIỂN BÁO từ Java Backend
+     ================================================================ -->
+<script>
+    const signContainer = document.getElementById('signContainer');
+
+    setInterval(() => {
+        fetch('/api/current-sign')
+            .then(res => res.json())
+            .then(data => {
+                if (!data || !data.signCode) return;
+
+                const existing = signContainer.querySelector(`[data-code="${data.signCode}"]`);
+                if (existing) signContainer.removeChild(existing);
+
+                const img = document.createElement('img');
+                img.src = data.image;
+                img.dataset.code = data.signCode;
+                img.style.cssText = 'width:120px; background:white; padding:5px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+                signContainer.appendChild(img);
+
+                setTimeout(() => {
+                    if (img.parentNode) signContainer.removeChild(img);
+                }, 4000);
+            })
+            .catch(() => {});
+    }, 500);
+</script>
+
+<!-- ================================================================
+     BẢN ĐỒ
+     ================================================================ -->
 <script>
     let map, vehicleMarker, routeLine, destinationMarker;
-    let currentPos = [10.0467, 105.7675]; // Tọa độ Cần Thơ
+    let currentPos = [10.0467, 105.7675];
     let isNavigating = false;
     let autoCenter = true;
 
     function initMap() {
         map = L.map('leaflet-map', { zoomControl: false }).setView(currentPos, 16);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
         setTimeout(() => map.invalidateSize(), 500);
 
         const navIcon = L.divIcon({
             className: 'v-marker',
-            html: `
-                <div id="vehicle-arrow" style="transform: rotate(0deg); display: flex; justify-content: center; align-items: center;">
-                    <i class="fa-solid fa-location-arrow" style="color: #0d6efd; font-size: 30px; text-shadow: 0 0 10px white;"></i>
-                </div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            html: `<div id="vehicle-arrow" style="transform:rotate(0deg); display:flex; justify-content:center; align-items:center;">
+                       <i class="fa-solid fa-location-arrow" style="color:#0d6efd; font-size:30px; text-shadow:0 0 10px white;"></i>
+                   </div>`,
+            iconSize: [30, 30], iconAnchor: [15, 15]
         });
 
         vehicleMarker = L.marker(currentPos, { icon: navIcon }).addTo(map);
-
         setupNavigationEvents();
         setupRecenterLogic();
         startGPS();
@@ -284,12 +461,7 @@
 
     function setupRecenterLogic() {
         const recenterBtn = document.getElementById('recenter-btn');
-
-        map.on('dragstart', () => {
-            autoCenter = false;
-            recenterBtn.style.display = 'block';
-        });
-
+        map.on('dragstart', () => { autoCenter = false; recenterBtn.style.display = 'block'; });
         recenterBtn.onclick = () => {
             autoCenter = true;
             recenterBtn.style.display = 'none';
@@ -298,7 +470,7 @@
     }
 
     function setupNavigationEvents() {
-        const input = document.getElementById('dest-input');
+        const input    = document.getElementById('dest-input');
         const startBtn = document.getElementById('start-nav');
 
         input.addEventListener('input', function () {
@@ -325,7 +497,7 @@
 
         startBtn.onclick = () => {
             isNavigating = true;
-            autoCenter = true;
+            autoCenter   = true;
             document.getElementById('search-box-ui').style.display = 'none';
             document.getElementById('nav-instruction').style.display = 'block';
             startBtn.style.display = 'none';
@@ -337,58 +509,44 @@
     function drawRealRoute(destLat, destLon) {
         if (routeLine) map.removeLayer(routeLine);
         if (destinationMarker) map.removeLayer(destinationMarker);
-
         destinationMarker = L.marker([destLat, destLon]).addTo(map);
 
         const url = `https://router.project-osrm.org/route/v1/driving/${currentPos[1]},${currentPos[0]};${destLon},${destLat}?overview=full&geometries=geojson`;
-
         fetch(url).then(res => res.json()).then(data => {
             if (data.routes && data.routes.length > 0) {
-                const route = data.routes[0];
+                const route  = data.routes[0];
                 const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                routeLine = L.polyline(coords, { color: '#4285F4', weight: 8, opacity: 0.7, lineJoin: 'round' }).addTo(map);
 
-                routeLine = L.polyline(coords, {
-                    color: '#4285F4', weight: 8, opacity: 0.7, lineJoin: 'round'
-                }).addTo(map);
-
-                document.getElementById('dist-left').innerText = (route.distance / 1000).toFixed(1);
-                document.getElementById('time-left').innerText = Math.round(route.duration / 60) + " phút";
-
+                document.getElementById('dist-left').innerText  = (route.distance / 1000).toFixed(1);
+                document.getElementById('time-left').innerText  = Math.round(route.duration / 60) + ' phút';
                 const arrival = new Date(Date.now() + route.duration * 1000);
-                const hh = arrival.getHours().toString().padStart(2, '0');
-                const mm = arrival.getMinutes().toString().padStart(2, '0');
-                document.getElementById('arrival-time').innerText = hh + ':' + mm;
+                document.getElementById('arrival-time').innerText =
+                    arrival.getHours().toString().padStart(2,'0') + ':' +
+                    arrival.getMinutes().toString().padStart(2,'0');
 
                 document.getElementById('trip-stats').style.display = 'block';
-
                 map.fitBounds(routeLine.getBounds(), { padding: [60, 100] });
             }
         });
     }
 
     function startGPS() {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition((pos) => {
-                const { latitude, longitude, heading } = pos.coords;
-                currentPos = [latitude, longitude];
-
-                vehicleMarker.setLatLng(currentPos);
-
-                if (heading !== null) {
-                    const arrowEl = document.getElementById('vehicle-arrow');
-                    if (arrowEl) {
-                        arrowEl.style.transform = `rotate(${heading - 45}deg)`;
-                    }
-                }
-
-                if (autoCenter) {
-                    map.panTo(currentPos);
-                }
-            }, null, { enableHighAccuracy: true });
-        }
+        if (!navigator.geolocation) return;
+        navigator.geolocation.watchPosition(pos => {
+            const { latitude, longitude, heading } = pos.coords;
+            currentPos = [latitude, longitude];
+            vehicleMarker.setLatLng(currentPos);
+            if (heading !== null) {
+                const el = document.getElementById('vehicle-arrow');
+                if (el) el.style.transform = `rotate(${heading - 45}deg)`;
+            }
+            if (autoCenter) map.panTo(currentPos);
+        }, null, { enableHighAccuracy: true });
     }
 
     window.onload = initMap;
 </script>
+
 </body>
 </html>

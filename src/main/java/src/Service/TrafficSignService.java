@@ -33,9 +33,8 @@ public class TrafficSignService {
         trafficSignRepos.save(trafficSign);
     }
 
-    public void handle(Integer signId) {
-    latestSign = trafficSignRepos.findById(signId).orElse(null);
-}
+    public void handle(String signId) {
+        latestSign = trafficSignRepos.findBySignCode(signId);}
 
     public TrafficSign getLatest() {
         TrafficSign temp = latestSign;

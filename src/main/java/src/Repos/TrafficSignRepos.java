@@ -1,7 +1,9 @@
 package src.Repos;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 import src.Entity.TrafficSign;
-
-public interface TrafficSignRepos extends JpaRepository<TrafficSign, Integer> {
+@Repository
+public interface TrafficSignRepos extends MongoRepository<TrafficSign, String> {
+    TrafficSign findBySignCode(String signCode);
 }

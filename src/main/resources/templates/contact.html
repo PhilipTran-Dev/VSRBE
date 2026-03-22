@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -9,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=2">
 </head>
 <body class="bg-light">
 
@@ -25,22 +26,71 @@
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav gap-2 gap-lg-5">
                     <li class="nav-item">
-                        <a class="nav-link nav-link-custom" href="/index">TRANG CHỦ</a>
+                        <a class="nav-link nav-link-custom " href="/index">TRANG CHỦ</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom" href="/vsr">VSR</a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="/services">DỊCH VỤ</a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom active" href="/contact">LIÊN HỆ</a>
                     </li>
                 </ul>
             </div>
 
-            <div class="d-none d-lg-block ms-5">
-                <a href="/login" class="user-btn-pill shadow-sm" title="Đăng nhập tài khoản">
-                    <i class="fa-solid fa-user"></i>
+            <div class="d-none d-lg-flex ms-5 gap-3" id="nav-guest-menu">
+                <a href="/login" class="btn btn-outline-info rounded-pill fw-bold px-4 transition-all hover-scale">
+                    ĐĂNG NHẬP
+                </a>
+                <a href="/register" class="btn btn-info rounded-pill fw-bold px-4 text-dark transition-all hover-scale shadow-cyan-glow">
+                    ĐĂNG KÝ
                 </a>
             </div>
+
+            <div class="d-none ms-5 dropdown" id="nav-user-menu" style="display: none !important;">
+                <a href="#" class="user-btn-pill shadow-sm text-decoration-none" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Tài khoản của tôi">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 border-0 mt-3" aria-labelledby="userDropdown" style="min-width: 230px;">
+
+                    <li class="px-3 py-2 text-muted small fw-bold text-center border-bottom mb-2" id="nav-user-name">
+                        Người dùng
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item fw-bold py-2" href="/profile">
+                            <i class="fa-regular fa-address-card me-2 text-secondary"></i> Hồ sơ cá nhân
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item fw-bold py-2" href="/services">
+                            <i class="fa-solid fa-crown me-2 text-warning"></i> Gói hiện tại: <span class="text-success ms-1">Basic</span>
+                        </a>
+                    </li>
+
+                    <li><hr class="dropdown-divider my-2 opacity-25"></li>
+
+                    <li>
+                        <a class="dropdown-item fw-bold text-info py-2" href="/vsr">
+                            <i class="fa-solid fa-gauge-high me-2"></i> Hệ thống VSR
+                        </a>
+                    </li>
+
+                    <li>
+                        <button class="dropdown-item fw-bold text-danger py-2" onclick="handleVsrLogout()">
+                            <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                        </button>
+                    </li>
+
+                </ul>
+            </div>
+
         </div>
     </nav>
 </div>
@@ -198,5 +248,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/auth.js}"></script>
 </body>
 </html>

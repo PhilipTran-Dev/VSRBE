@@ -78,4 +78,9 @@ public class WebController {
     public String showForm() {
         return "addData";
     }
+
+    @GetMapping("/testec2")
+    public String testEc2(){
+        return "TestEc2";
+    }
 }
