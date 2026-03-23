@@ -58,7 +58,7 @@ public class TrafficApiController {
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:5000/detect",
+                "http://ec2-13-250-120-177.ap-southeast-1.compute.amazonaws.com:5000/detect",
                 requestEntity,
                 String.class
         );
@@ -73,7 +73,7 @@ public class TrafficApiController {
 
         RestTemplate restTemplate = new RestTemplate();
         byte[] sound = restTemplate.getForObject(
-                "http://localhost:5000/sounds/" + filename,
+                "http://ec2-13-250-120-177.ap-southeast-1.compute.amazonaws.com:5000/sounds/" + filename,
                 byte[].class
         );
 
